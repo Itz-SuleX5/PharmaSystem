@@ -2,6 +2,19 @@ QT       += core gui sql printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+TARGET = PharmaSystemQT
+TEMPLATE = app
+
+# Configuración específica para Windows
+win32 {
+    RC_ICONS = icon.ico
+    VERSION = 1.0.0.0
+    QMAKE_TARGET_COMPANY = "Tu Compañía"
+    QMAKE_TARGET_PRODUCT = "PharmaSystemQT"
+    QMAKE_TARGET_DESCRIPTION = "Sistema de Gestión de Farmacia"
+    QMAKE_TARGET_COPYRIGHT = "Copyright (C) 2024"
+}
+
 CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -9,44 +22,43 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    main.cpp \
-    mainwindow.cpp \
-    login.cpp \
-    database.cpp \
-    models/product.cpp \
-    models/user.cpp \
-    models/sale.cpp \
-    models/supplier.cpp \
     controllers/inventorycontroller.cpp \
     controllers/salescontroller.cpp \
     controllers/usercontroller.cpp \
-    views/inventoryview.cpp \
-    views/salesview.cpp \
-    views/supplierview.cpp \
+    database.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    models/product.cpp \
+    models/sale.cpp \
+    models/supplier.cpp \
+    models/user.cpp \
+    utils/databasebackup.cpp \
     utils/pdfgenerator.cpp \
-    utils/databasebackup.cpp
+    views/inventoryview.cpp \
+    views/login.cpp \
+    views/salesview.cpp \
+    views/supplierview.cpp
 
 HEADERS += \
-    mainwindow.h \
-    login.h \
-    database.h \
-    models/product.h \
-    models/user.h \
-    models/sale.h \
-    models/supplier.h \
     controllers/inventorycontroller.h \
     controllers/salescontroller.h \
     controllers/usercontroller.h \
-    views/inventoryview.h \
-    views/salesview.h \
-    views/supplierview.h \
+    database.h \
+    mainwindow.h \
+    models/product.h \
+    models/sale.h \
+    models/supplier.h \
+    models/user.h \
+    utils/databasebackup.h \
     utils/pdfgenerator.h \
-    utils/databasebackup.h
+    views/inventoryview.h \
+    views/login.h \
+    views/salesview.h \
+    views/supplierview.h
 
 FORMS += \
-    mainwindow.ui \
-    login.ui \
     views/inventoryview.ui \
+    views/mainwindow.ui \
     views/salesview.ui \
     views/supplierview.ui
 

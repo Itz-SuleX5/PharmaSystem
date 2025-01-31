@@ -1,0 +1,44 @@
+# Archivos generados por Qt
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+Makefile*
+*.o
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.Debug
+*.Release
+debug/
+release/
+.qmake.cache
+.qmake.stash
+
+# Archivos del sistema
+.DS_Store
+.directory
+*.autosave
+
+# Ejecutables
+*.exe
+*.dll
+*.dylib
+*.so
+PharmaSystemQT
+
+# Archivos de respaldo
+*~
+*.bak
+
+# Archivos de base de datos SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Directorios de construcción
+build/
+bin/
+
+# Archivos temporales
+*.swp
+*.swo 

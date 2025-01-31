@@ -5,8 +5,10 @@
 #include <QFileDialog>
 #include <QDateTime>
 #include <QSqlDatabase>
+#include <QGroupBox>
+#include <QFormLayout>
 
-SalesView::SalesView(QWidget *parent) : QWidget(parent), total(0.0)
+SalesView::SalesView(QWidget *parent) : QWidget(parent), total(0.0), change(0.0)
 {
     setupUI();
     loadProducts();
@@ -17,6 +19,7 @@ SalesView::SalesView(QWidget *parent) : QWidget(parent), total(0.0)
     connect(removeFromCartButton, &QPushButton::clicked, this, &SalesView::onRemoveFromCart);
     connect(processSaleButton, &QPushButton::clicked, this, &SalesView::onProcessSale);
     connect(generatePDFButton, &QPushButton::clicked, this, &SalesView::onGeneratePDF);
+    connect(amountPaidSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &SalesView::onAmountPaidChanged);
 }
 
 void SalesView::setupUI()
@@ -37,6 +40,8 @@ void SalesView::setupUI()
     productsTable = new QTableWidget(this);
     productsTable->setColumnCount(4);
     productsTable->setHorizontalHeaderLabels({"ID", "Nombre", "Precio", "Stock"});
+    productsTable->setSelectionBehavior(QAbstractItemView::SelectRows);  // Seleccionar fila completa
+    productsTable->setSelectionMode(QAbstractItemView::SingleSelection); // Solo una fila a la vez
     productsLayout->addWidget(productsTable);
     
     // Cart controls
@@ -59,14 +64,33 @@ void SalesView::setupUI()
     
     mainLayout->addLayout(productsLayout);
     
+    // Customer and payment info
+    QGroupBox *infoGroupBox = new QGroupBox("Información de Venta", this);
+    QFormLayout *infoLayout = new QFormLayout(infoGroupBox);
+    
+    customerNameEdit = new QLineEdit(this);
+    infoLayout->addRow("Nombre del Cliente:", customerNameEdit);
+    
+    amountPaidSpinBox = new QDoubleSpinBox(this);
+    amountPaidSpinBox->setMaximum(999999.99);
+    amountPaidSpinBox->setDecimals(2);
+    amountPaidSpinBox->setMinimum(0.0);
+    amountPaidSpinBox->setSingleStep(1.0);
+    infoLayout->addRow("Monto Pagado:", amountPaidSpinBox);
+    
+    totalLabel = new QLabel("Total: $0.00", this);
+    infoLayout->addRow("Total:", totalLabel);
+    
+    changeLabel = new QLabel("Cambio: $0.00", this);
+    infoLayout->addRow("Cambio:", changeLabel);
+    
+    mainLayout->addWidget(infoGroupBox);
+    
     // Total and buttons section
     QHBoxLayout *bottomLayout = new QHBoxLayout();
-    totalLabel = new QLabel("Total: $0.00", this);
     processSaleButton = new QPushButton("Procesar Venta", this);
     generatePDFButton = new QPushButton("Generar Factura PDF", this);
     generatePDFButton->setEnabled(false);
-    bottomLayout->addWidget(totalLabel);
-    bottomLayout->addStretch();
     bottomLayout->addWidget(processSaleButton);
     bottomLayout->addWidget(generatePDFButton);
     
@@ -130,22 +154,42 @@ void SalesView::onAddToCart()
     int stock = productsTable->item(row, 3)->text().toInt();
     int quantity = quantitySpinBox->value();
     
-    if (quantity > stock) {
+    // Buscar si el producto ya está en el carrito
+    int existingRow = -1;
+    for (int i = 0; i < cartTable->rowCount(); ++i) {
+        if (cartTable->item(i, 0)->text().toInt() == productId) {
+            existingRow = i;
+            break;
+        }
+    }
+    
+    // Calcular cantidad total
+    int totalQuantity = quantity;
+    if (existingRow != -1) {
+        totalQuantity += cartTable->item(existingRow, 2)->text().toInt();
+    }
+    
+    if (totalQuantity > stock) {
         QMessageBox::warning(this, "Error", "No hay suficiente stock disponible");
         return;
     }
     
-    // Add to cart table
-    int cartRow = cartTable->rowCount();
-    cartTable->insertRow(cartRow);
-    cartTable->setItem(cartRow, 0, new QTableWidgetItem(QString::number(productId)));
-    cartTable->setItem(cartRow, 1, new QTableWidgetItem(name));
-    cartTable->setItem(cartRow, 2, new QTableWidgetItem(QString::number(quantity)));
-    cartTable->setItem(cartRow, 3, new QTableWidgetItem(QString::number(quantity * price, 'f', 2)));
+    if (existingRow != -1) {
+        // Actualizar cantidad y subtotal del item existente
+        cartTable->item(existingRow, 2)->setText(QString::number(totalQuantity));
+        cartTable->item(existingRow, 3)->setText(QString::number(totalQuantity * price, 'f', 2));
+    } else {
+        // Agregar nuevo item al carrito
+        int cartRow = cartTable->rowCount();
+        cartTable->insertRow(cartRow);
+        cartTable->setItem(cartRow, 0, new QTableWidgetItem(QString::number(productId)));
+        cartTable->setItem(cartRow, 1, new QTableWidgetItem(name));
+        cartTable->setItem(cartRow, 2, new QTableWidgetItem(QString::number(quantity)));
+        cartTable->setItem(cartRow, 3, new QTableWidgetItem(QString::number(quantity * price, 'f', 2)));
+    }
     
-    // Update total
-    total += quantity * price;
-    totalLabel->setText(QString("Total: $%1").arg(total, 0, 'f', 2));
+    // Update total y monto pagado
+    updateTotal();
 }
 
 void SalesView::onRemoveFromCart()
@@ -163,6 +207,39 @@ void SalesView::onRemoveFromCart()
     totalLabel->setText(QString("Total: $%1").arg(total, 0, 'f', 2));
     
     cartTable->removeRow(row);
+    
+    // Update total y monto pagado
+    updateTotal();
+}
+
+void SalesView::onAmountPaidChanged(double value)
+{
+    updateChange();
+}
+
+void SalesView::updateChange()
+{
+    change = amountPaidSpinBox->value() - total;
+    changeLabel->setText(QString("Cambio: $%1").arg(change, 0, 'f', 2));
+    
+    // Enable/disable process sale button based on payment
+    processSaleButton->setEnabled(amountPaidSpinBox->value() >= total);
+}
+
+void SalesView::updateTotal()
+{
+    total = 0.0;
+    for (int row = 0; row < cartTable->rowCount(); ++row) {
+        total += cartTable->item(row, 3)->text().toFloat();
+    }
+    totalLabel->setText(QString("Total: $%1").arg(total, 0, 'f', 2));
+    
+    // Actualizar el mínimo del spinbox al total actual
+    amountPaidSpinBox->setMinimum(total);
+    amountPaidSpinBox->setValue(total);  // Establecer el valor al total
+    
+    // Actualizar el cambio
+    updateChange();
 }
 
 void SalesView::onProcessSale()
@@ -172,69 +249,39 @@ void SalesView::onProcessSale()
         return;
     }
     
-    // Start transaction
-    QSqlDatabase::database().transaction();
-    
-    // Create sale record
-    QSqlQuery query;
-    query.prepare("INSERT INTO sales (date, total, user_id) VALUES (?, ?, ?)");
-    query.addBindValue(QDateTime::currentDateTime());
-    query.addBindValue(total);
-    query.addBindValue(1); // TODO: Get actual user ID
-    
-    if (!query.exec()) {
-        QSqlDatabase::database().rollback();
-        QMessageBox::critical(this, "Error", "Error al crear la venta: " + query.lastError().text());
+    if (customerNameEdit->text().trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Error", "Por favor ingrese el nombre del cliente");
         return;
     }
+
+    QSqlDatabase::database().transaction();
     
-    int saleId = query.lastInsertId().toInt();
-    
-    // Create sale items and update stock
+    // Actualizar stock de productos
     for (int row = 0; row < cartTable->rowCount(); ++row) {
         int productId = cartTable->item(row, 0)->text().toInt();
         int quantity = cartTable->item(row, 2)->text().toInt();
-        float price = cartTable->item(row, 3)->text().toFloat() / quantity;
         
-        // Create sale item
-        query.prepare("INSERT INTO sale_items (sale_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-        query.addBindValue(saleId);
-        query.addBindValue(productId);
-        query.addBindValue(quantity);
-        query.addBindValue(price);
+        QSqlQuery updateStock;
+        updateStock.prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
+        updateStock.addBindValue(quantity);
+        updateStock.addBindValue(productId);
         
-        if (!query.exec()) {
+        if (!updateStock.exec()) {
             QSqlDatabase::database().rollback();
-            QMessageBox::critical(this, "Error", "Error al crear item de venta: " + query.lastError().text());
-            return;
-        }
-        
-        // Update stock
-        query.prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
-        query.addBindValue(quantity);
-        query.addBindValue(productId);
-        
-        if (!query.exec()) {
-            QSqlDatabase::database().rollback();
-            QMessageBox::critical(this, "Error", "Error al actualizar stock: " + query.lastError().text());
+            QMessageBox::critical(this, "Error", "Error al actualizar el stock: " + updateStock.lastError().text());
             return;
         }
     }
-    
-    // Commit transaction
-    if (!QSqlDatabase::database().commit()) {
-        QSqlDatabase::database().rollback();
-        QMessageBox::critical(this, "Error", "Error al finalizar la venta");
-        return;
-    }
-    
-    // Store current sale for PDF generation
-    Sale currentSale; // Declare Sale object
-    currentSale.id = saleId;
+
+    // Create new sale
+    currentSale.customerName = customerNameEdit->text().trimmed();
     currentSale.date = QDateTime::currentDateTime();
     currentSale.total = total;
-    currentSale.userId = 1; // TODO: Get actual user ID
-    
+    currentSale.amountPaid = amountPaidSpinBox->value();
+    currentSale.change = change;
+    currentSale.items.clear();
+
+    // Add items to sale
     for (int row = 0; row < cartTable->rowCount(); ++row) {
         SaleItem item;
         item.productId = cartTable->item(row, 0)->text().toInt();
@@ -244,12 +291,27 @@ void SalesView::onProcessSale()
         currentSale.items.append(item);
     }
     
-    // Enable PDF generation
+    if (!QSqlDatabase::database().commit()) {
+        QSqlDatabase::database().rollback();
+        QMessageBox::critical(this, "Error", "Error al procesar la venta");
+        return;
+    }
+    
+    // Enable PDF generation before clearing cart
     generatePDFButton->setEnabled(true);
     
     // Clear cart and reload products
-    clearCart();
+    cartTable->setRowCount(0);
+    total = 0.0;
+    totalLabel->setText("Total: $0.00");
+    amountPaidSpinBox->setMinimum(0.0);
+    amountPaidSpinBox->setValue(0.0);
+    changeLabel->setText("Cambio: $0.00");
+    
     loadProducts();
+    
+    // Clear customer info
+    customerNameEdit->clear();
     
     QMessageBox::information(this, "Éxito", "Venta procesada correctamente");
 }
@@ -265,20 +327,11 @@ void SalesView::onGeneratePDF()
         return;
     }
     
-    if (currentSale.generatePDF(filePath)) { // Use Sale object
+    if (currentSale.generatePDF(filePath)) {
         QMessageBox::information(this, "Éxito", "Factura generada correctamente");
     } else {
         QMessageBox::critical(this, "Error", "Error al generar la factura");
     }
-}
-
-void SalesView::updateTotal()
-{
-    total = 0.0;
-    for (int row = 0; row < cartTable->rowCount(); ++row) {
-        total += cartTable->item(row, 3)->text().toFloat();
-    }
-    totalLabel->setText(QString("Total: $%1").arg(total, 0, 'f', 2));
 }
 
 void SalesView::clearCart()
@@ -286,5 +339,8 @@ void SalesView::clearCart()
     cartTable->setRowCount(0);
     total = 0.0;
     totalLabel->setText("Total: $0.00");
+    amountPaidSpinBox->setMinimum(0.0);
+    amountPaidSpinBox->setValue(0.0);
+    changeLabel->setText("Cambio: $0.00");
     generatePDFButton->setEnabled(false);
 }

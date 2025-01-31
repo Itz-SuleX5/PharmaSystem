@@ -15,12 +15,14 @@ struct SaleItem {
 class Sale {
 public:
     int id;
+    QString customerName;
     QDateTime date;
     float total;
-    int userId;
+    float amountPaid;
+    float change;
     QList<SaleItem> items;
 
-    bool generatePDF(const QString &filePath) const;
+    bool generatePDF(const QString &filePath);
 };
 
 #endif // SALE_H

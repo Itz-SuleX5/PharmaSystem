@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'salesview.ui'
 **
-** Created by: Qt User Interface Compiler version 6.6.2
+** Created by: Qt User Interface Compiler version 5.15.15
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -22,7 +22,7 @@ public:
     void setupUi(QWidget *SalesView)
     {
         if (SalesView->objectName().isEmpty())
-            SalesView->setObjectName("SalesView");
+            SalesView->setObjectName(QString::fromUtf8("SalesView"));
         SalesView->resize(800, 600);
 
         retranslateUi(SalesView);

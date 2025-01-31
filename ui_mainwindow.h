@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created by: Qt User Interface Compiler version 6.6.2
+** Created by: Qt User Interface Compiler version 5.15.15
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -10,7 +10,7 @@
 #define UI_MAINWINDOW_H
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
@@ -35,27 +35,27 @@ public:
     void setupUi(QMainWindow *MainWindow)
     {
         if (MainWindow->objectName().isEmpty())
-            MainWindow->setObjectName("MainWindow");
+            MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
         MainWindow->resize(800, 600);
         actionInventario = new QAction(MainWindow);
-        actionInventario->setObjectName("actionInventario");
+        actionInventario->setObjectName(QString::fromUtf8("actionInventario"));
         actionVentas = new QAction(MainWindow);
-        actionVentas->setObjectName("actionVentas");
+        actionVentas->setObjectName(QString::fromUtf8("actionVentas"));
         actionProveedores = new QAction(MainWindow);
-        actionProveedores->setObjectName("actionProveedores");
+        actionProveedores->setObjectName(QString::fromUtf8("actionProveedores"));
         actionSalir = new QAction(MainWindow);
-        actionSalir->setObjectName("actionSalir");
+        actionSalir->setObjectName(QString::fromUtf8("actionSalir"));
         centralwidget = new QWidget(MainWindow);
-        centralwidget->setObjectName("centralwidget");
+        centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
-        menubar->setObjectName("menubar");
+        menubar->setObjectName(QString::fromUtf8("menubar"));
         menubar->setGeometry(QRect(0, 0, 800, 22));
         menuSistema = new QMenu(menubar);
-        menuSistema->setObjectName("menuSistema");
+        menuSistema->setObjectName(QString::fromUtf8("menuSistema"));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
-        statusbar->setObjectName("statusbar");
+        statusbar->setObjectName(QString::fromUtf8("statusbar"));
         MainWindow->setStatusBar(statusbar);
 
         menubar->addAction(menuSistema->menuAction());
@@ -72,7 +72,7 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "Sistema de Gesti\303\263n Farmac\303\251utica", nullptr));
+        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "Pharmacy Management System", nullptr));
         actionInventario->setText(QCoreApplication::translate("MainWindow", "Inventario", nullptr));
         actionVentas->setText(QCoreApplication::translate("MainWindow", "Ventas", nullptr));
         actionProveedores->setText(QCoreApplication::translate("MainWindow", "Proveedores", nullptr));

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'inventoryview.ui'
 **
-** Created by: Qt User Interface Compiler version 6.6.2
+** Created by: Qt User Interface Compiler version 5.15.15
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -24,10 +24,10 @@ public:
     void setupUi(QWidget *InventoryView)
     {
         if (InventoryView->objectName().isEmpty())
-            InventoryView->setObjectName("InventoryView");
+            InventoryView->setObjectName(QString::fromUtf8("InventoryView"));
         InventoryView->resize(800, 600);
         verticalLayout = new QVBoxLayout(InventoryView);
-        verticalLayout->setObjectName("verticalLayout");
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
 
         retranslateUi(InventoryView);
 

@@ -3,17 +3,26 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QList>
 
-class Sale
-{
+struct SaleItem {
+    int productId;
+    QString productName;
+    int quantity;
+    float price;
+};
+
+class Sale {
 public:
-    Sale() = default;
-    
-private:
-    QString invoiceNumber;
-    int userId;
-    double totalAmount;
-    QDateTime saleDate;
+    int id;
+    QString customerName;
+    QDateTime date;
+    float total;
+    float amountPaid;
+    float change;
+    QList<SaleItem> items;
+
+    bool generatePDF(const QString &filePath);
 };
 
 #endif // SALE_H

@@ -1,6 +1,7 @@
 #include <QApplication>
-#include "login.h"
+#include "mainwindow.h"
 #include "database.h"
+#include "views/login.h"
 
 int main(int argc, char *argv[])
 {

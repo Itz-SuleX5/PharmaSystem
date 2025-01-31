@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'supplierview.ui'
 **
-** Created by: Qt User Interface Compiler version 6.6.2
+** Created by: Qt User Interface Compiler version 5.15.15
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -22,7 +22,7 @@ public:
     void setupUi(QWidget *SupplierView)
     {
         if (SupplierView->objectName().isEmpty())
-            SupplierView->setObjectName("SupplierView");
+            SupplierView->setObjectName(QString::fromUtf8("SupplierView"));
         SupplierView->resize(800, 600);
 
         retranslateUi(SupplierView);

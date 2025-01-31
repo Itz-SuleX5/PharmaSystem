@@ -1,64 +1,114 @@
 #include "../sale.h"
-#include <QPdfWriter>
+#include <QPrinter>
 #include <QPainter>
+#include <QDateTime>
+#include <QTextDocument>
+#include <QTextTable>
 
-bool Sale::generatePDF(const QString &filePath) const
+bool Sale::generatePDF(const QString &filePath)
 {
-    QPdfWriter pdfWriter(filePath);
-    QPainter painter(&pdfWriter);
-    
-    // Set font and margins
-    QFont font("Arial", 12);
-    painter.setFont(font);
-    painter.setPen(Qt::black);
-    painter.setBrush(Qt::NoBrush);
-    
-    // Draw header
-    QFont headerFont = font;
-    headerFont.setPointSize(16);
-    headerFont.setBold(true);
-    painter.setFont(headerFont);
-    painter.drawText(QRect(100, 100, 400, 50), Qt::AlignCenter, "PHARMACY MANAGEMENT SYSTEM");
-    
-    // Draw company info
-    painter.setFont(font);
-    painter.drawText(QRect(100, 200, 400, 30), Qt::AlignCenter, "123 Main Street");
-    painter.drawText(QRect(100, 230, 400, 30), Qt::AlignCenter, "City, State 12345");
-    painter.drawText(QRect(100, 260, 400, 30), Qt::AlignCenter, "Phone: (123) 456-7890");
-    
-    // Draw invoice info
-    painter.drawText(QRect(50, 350, 200, 30), Qt::AlignLeft, QString("Invoice #: %1").arg(id));
-    painter.drawText(QRect(50, 380, 300, 30), Qt::AlignLeft, QString("Date: %1").arg(date.toString("yyyy-MM-dd hh:mm:ss")));
-    
-    // Draw items table header
-    int y = 450;
-    painter.drawText(QRect(50, y, 200, 30), Qt::AlignLeft, "Product");
-    painter.drawText(QRect(250, y, 100, 30), Qt::AlignRight, "Quantity");
-    painter.drawText(QRect(350, y, 100, 30), Qt::AlignRight, "Price");
-    painter.drawText(QRect(450, y, 100, 30), Qt::AlignRight, "Total");
-    
-    y += 30;
-    
-    // Draw items
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(filePath);
+    printer.setPageSize(QPageSize(QPageSize::A4));
+    printer.setPageMargins(QMarginsF(30, 30, 30, 30), QPageLayout::Millimeter);
+
+    QTextDocument doc;
+    QString html = QString(
+        "<html>"
+        "<head>"
+        "<style>"
+        "body { font-size: 200pt; }"
+        "h1 { "
+        "   font-size: 400%; "
+        "   margin-bottom: 30px; "
+        "   font-weight: 900; "
+        "   transform: scale(2.0); "
+        "   line-height: 2.5em; "
+        "}"
+        "h3 { "
+        "   font-size: 300%; "
+        "   margin-top: 25px; "
+        "   margin-bottom: 15px; "
+        "   font-weight: 800; "
+        "   transform: scale(1.5); "
+        "   line-height: 2em; "
+        "}"
+        "table { width: 100%; border-collapse: collapse; margin: 25px 0; }"
+        "th, td { padding: 15px; text-align: left; border-bottom: 2px solid #ddd; }"
+        "th { background-color: #f2f2f2; font-size: 200pt; font-weight: bold; }"
+        "td { font-size: 180pt; }"
+        ".right { text-align: right; }"
+        ".center { text-align: center; }"
+        ".totales { font-size: 200pt; }"
+        "</style>"
+        "</head>"
+        "<body>"
+        "<p style='transform: scale(2.0); transform-origin: center; margin: 100px 0;' align='center'>Factura de Venta</p>"
+        "<br><br><br>"
+        "<p style='font-size: 100pt; transform-origin: left;'>Información de Venta</p>"
+        "<p>Fecha: %1</p>"
+        "<p>Cliente: %2</p>"
+        "<br>"
+        "<p style='font-size: 160pt; transform-origin: left;'>Productos</p>"
+        "<table>"
+        "<tr>"
+        "<th>Producto</th>"
+        "<th class='right'>Cantidad</th>"
+        "<th class='right'>Precio</th>"
+        "<th class='right'>Subtotal</th>"
+        "</tr>"
+    ).arg(date.toString("dd/MM/yyyy hh:mm:ss"), customerName);
+
+    // Agregar productos
     for (const SaleItem &item : items) {
-        painter.drawText(QRect(50, y, 200, 30), Qt::AlignLeft, item.productName);
-        painter.drawText(QRect(250, y, 100, 30), Qt::AlignRight, QString::number(item.quantity));
-        painter.drawText(QRect(350, y, 100, 30), Qt::AlignRight, QString("$%1").arg(item.price, 0, 'f', 2));
-        painter.drawText(QRect(450, y, 100, 30), Qt::AlignRight, QString("$%1").arg(item.quantity * item.price, 0, 'f', 2));
-        y += 30;
+        html += QString(
+            "<tr>"
+            "<td>%1</td>"
+            "<td class='right'>%2</td>"
+            "<td class='right'>$%3</td>"
+            "<td class='right'>$%4</td>"
+            "</tr>"
+        ).arg(
+            item.productName,
+            QString::number(item.quantity),
+            QString::number(item.price, 'f', 2),
+            QString::number(item.price * item.quantity, 'f', 2)
+        );
     }
-    
-    // Draw total
-    y += 30;
-    QFont totalFont = font;
-    totalFont.setBold(true);
-    painter.setFont(totalFont);
-    painter.drawText(QRect(350, y, 200, 30), Qt::AlignRight, QString("Total: $%1").arg(total, 0, 'f', 2));
-    
-    // Draw footer
-    y = pdfWriter.height() - 100;
-    painter.setFont(font);
-    painter.drawText(QRect(50, y, 500, 30), Qt::AlignCenter, "Thank you for your purchase!");
-    
+
+    html += "</table><br>";
+
+    // Totales
+    html += QString(
+        "<table class='totales' style='width: 400px; float: right;'>"
+        "<tr>"
+        "<td><strong>Total:</strong></td>"
+        "<td class='right'><strong>$%1</strong></td>"
+        "</tr>"
+        "<tr>"
+        "<td>Pagado:</td>"
+        "<td class='right'>$%2</td>"
+        "</tr>"
+        "<tr>"
+        "<td>Cambio:</td>"
+        "<td class='right'>$%3</td>"
+        "</tr>"
+        "</table>"
+        "<div style='clear: both;'></div>"
+        "<br><br><br>"
+        "<p align='center' style='font-size: 160pt;'>¡Gracias por su compra!</p>"
+        "</body>"
+        "</html>"
+    ).arg(
+        QString::number(total, 'f', 2),
+        QString::number(amountPaid, 'f', 2),
+        QString::number(change, 'f', 2)
+    );
+
+    doc.setHtml(html);
+    doc.setPageSize(printer.pageRect().size());
+    doc.print(&printer);
+
     return true;
 }

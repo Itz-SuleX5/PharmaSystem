@@ -10,6 +10,7 @@
 #include <QSpinBox>
 #include <QLabel>
 #include <QMessageBox>
+#include <QDoubleSpinBox>
 #include "../sale.h"
 
 class SalesView : public QWidget
@@ -25,24 +26,30 @@ private slots:
     void onRemoveFromCart();
     void onProcessSale();
     void onGeneratePDF();
+    void onAmountPaidChanged(double value);
     
 private:
     void setupUI();
     void loadProducts();
     void updateTotal();
     void clearCart();
+    void updateChange();
     
     QLineEdit *searchEdit;
+    QLineEdit *customerNameEdit;
     QTableWidget *productsTable;
     QTableWidget *cartTable;
     QSpinBox *quantitySpinBox;
+    QDoubleSpinBox *amountPaidSpinBox;
     QPushButton *addToCartButton;
     QPushButton *removeFromCartButton;
     QPushButton *processSaleButton;
     QPushButton *generatePDFButton;
     QLabel *totalLabel;
+    QLabel *changeLabel;
     
     float total;
+    float change;
     Sale currentSale;
 };
 
